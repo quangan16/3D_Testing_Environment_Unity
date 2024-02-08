@@ -5,7 +5,7 @@ using UnityEngine;
 
 //This script requires you to have setup your animator with 3 parameters, "InputMagnitude", "InputX", "InputZ"
 //With a blend tree to control the inputmagnitude and allow blending between animations.
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerController))]
 public class MovementInput : MonoBehaviour {
 
     public float Velocity;
@@ -14,6 +14,7 @@ public class MovementInput : MonoBehaviour {
 	public float InputX;
 	public float InputZ;
 	public Vector3 desiredMoveDirection;
+	public Vector3 desiredRotateDirection;
 	public bool blockRotationPlayer;
 	public float desiredRotationSpeed = 0.1f;
 	public Animator anim;
@@ -39,7 +40,7 @@ public class MovementInput : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		anim = this.GetComponent<Animator> ();
-		cam = Camera.main;
+		// cam = Camera.main;
 		controller = this.GetComponent<CharacterController> ();
 	}
 	
@@ -52,7 +53,7 @@ public class MovementInput : MonoBehaviour {
         {
             verticalVel -= 0;
         }
-        else
+        else if(!isGrounded && verticalVel > -100.0f)
         {
             verticalVel -= 1;
         }
@@ -76,10 +77,11 @@ public class MovementInput : MonoBehaviour {
 		forward.Normalize ();
 		right.Normalize ();
 
-		desiredMoveDirection = forward * InputZ + right * InputX;
-
+		desiredMoveDirection = forward * InputZ ;
+		// desiredRotateDirection =
 		if (blockRotationPlayer == false) {
-			transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (desiredMoveDirection), desiredRotationSpeed);
+			transform.rotation = Quaternion.RotateTowards(transform.rotation,
+				Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0, InputX  * desiredRotationSpeed, 0)), desiredRotationSpeed);
             controller.Move(desiredMoveDirection * Time.deltaTime * Velocity);
 		}
 	}
@@ -92,7 +94,7 @@ public class MovementInput : MonoBehaviour {
     public void RotateToCamera(Transform t)
     {
 
-        var camera = Camera.main;
+       
         var forward = cam.transform.forward;
         var right = cam.transform.right;
 
